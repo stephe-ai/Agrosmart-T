@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroSmart AI — Par Tuo Stéphane</title>
+<style>
+  :root{--soil:#2d1b0e;--straw:#c8a96e;--sprout:#4a9e2f;--lime:#86c827;--sun:#f5a623;--purple:#8b5cf6;--cream:#faf6ee;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{min-height:100vh;background:linear-gradient(160deg,var(--soil) 0%,#1a2e0e 60%,#0d1f08 100%);font-family:Georgia,serif;color:var(--cream);}
+
+  header{display:flex;align-items:center;gap:12px;padding:16px;background:rgba(0,0,0,0.45);border-bottom:1px solid rgba(200,169,110,0.2);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--sprout),var(--lime));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 0 18px rgba(134,200,39,0.4);}
+  .app-name{font-size:18px;font-weight:700;color:var(--cream);}
+  .app-tag{font-size:9px;color:var(--straw);letter-spacing:2px;text-transform:uppercase;}
+  .powered{margin-left:auto;text-align:right;font-size:9px;color:var(--straw);}
+  .powered span{display:block;color:#f97316;font-weight:700;font-size:12px;}
+
+  /* BANNER CLÉ */
+  #banner{background:rgba(249,115,22,0.12);border-bottom:2px solid rgba(249,115,22,0.4);padding:14px 16px;transition:all .4s;}
+  #banner h3{font-size:13px;color:var(--sun);margin-bottom:8px;}
+  #banner p{font-size:11px;color:var(--straw);margin-bottom:10px;line-height:1.5;}
+  .key-row{display:flex;gap:8px;align-items:center;}
+  #key-input{flex:1;padding:10px 12px;border-radius:10px;border:2px solid rgba(249,115,22,0.5);background:rgba(0,0,0,0.5);color:var(--cream);font-size:13px;font-family:monospace;outline:none;}
+  #key-input:focus{border-color:var(--sun);}
+  #key-btn{padding:10px 16px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#ea580c,var(--sun));color:white;font-weight:700;font-size:13px;white-space:nowrap;}
+  .key-help{font-size:11px;color:#888;margin-top:8px;}
+  .key-help a{color:var(--sun);text-decoration:none;}
+
+  /* NAV */
+  nav{background:rgba(0,0,0,0.25);border-bottom:1px solid rgba(200,169,110,0.1);}
+  .nav-sec{font-size:9px;color:#555;letter-spacing:2px;text-transform:uppercase;padding:5px 14px 0;}
+  .nav-row{display:flex;gap:4px;padding:5px 12px 8px;overflow-x:auto;}
+  .nb{padding:7px 12px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-family:Georgia,serif;white-space:nowrap;background:rgba(255,255,255,0.07);color:var(--straw);transition:all .2s;}
+  .nb.active{background:linear-gradient(135deg,var(--sprout),var(--lime));color:var(--soil);font-weight:700;box-shadow:0 3px 10px rgba(134,200,39,0.3);}
+
+  .content{max-width:700px;margin:0 auto;padding:14px 12px 60px;}
+  .page{display:none;} .page.active{display:block;}
+
+  .card{background:rgba(255,255,255,0.05);border:1px solid rgba(200,169,110,0.2);border-radius:14px;padding:16px;margin-bottom:12px;}
+  .ct{font-size:14px;font-weight:700;color:var(--lime);margin-bottom:8px;}
+  .ct.sun{color:var(--sun);}
+  .cs{font-size:11px;color:var(--straw);margin-bottom:10px;}
+
+  input[type=text],input[type=number],select,textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(200,169,110,0.3);background:rgba(0,0,0,0.35);color:var(--cream);font-size:13px;font-family:Georgia,serif;outline:none;margin-bottom:8px;}
+  select{background:rgba(20,12,5,0.95);}
+  textarea{resize:vertical;min-height:75px;}
+  input[type=file]{display:none;}
+
+  .btn{padding:10px 18px;border-radius:10px;border:none;cursor:pointer;font-size:12px;font-family:Georgia,serif;font-weight:700;margin-right:6px;margin-top:4px;transition:all .2s;}
+  .bp{background:linear-gradient(135deg,var(--sprout),var(--lime));color:var(--soil);box-shadow:0 3px 14px rgba(134,200,39,0.3);}
+  .bv{background:linear-gradient(135deg,#7c3aed,var(--purple));color:white;box-shadow:0 3px 14px rgba(139,92,246,0.3);}
+  .bg{background:rgba(255,255,255,0.1);color:var(--cream);}
+  .btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0;}
+  .chip{padding:6px 10px;border-radius:8px;cursor:pointer;border:1px solid rgba(200,169,110,0.3);background:rgba(0,0,0,0.2);color:var(--straw);font-size:11px;font-family:Georgia,serif;transition:all .2s;}
+  .chip.active{border-color:var(--lime);background:rgba(134,200,39,0.14);color:var(--lime);}
+
+  .drop{border:2px dashed rgba(200,169,110,0.4);border-radius:12px;padding:20px 14px;text-align:center;cursor:pointer;background:rgba(0,0,0,0.2);transition:all .2s;margin-bottom:8px;}
+  .drop.drag{border-color:var(--lime);background:rgba(134,200,39,0.07);}
+  .drop img{max-height:140px;border-radius:8px;max-width:100%;}
+
+  .result{background:rgba(45,106,31,0.15);border:1px solid rgba(134,200,39,0.3);border-radius:12px;padding:13px;margin-top:11px;font-size:13px;line-height:1.75;white-space:pre-wrap;display:none;}
+  .result-p{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:12px;padding:13px;margin-top:11px;font-size:13px;line-height:1.75;white-space:pre-wrap;display:none;}
+
+  .spin{width:24px;height:24px;margin:12px auto;border:3px solid rgba(134,200,39,0.2);border-top:3px solid var(--lime);border-radius:50%;animation:spin .8s linear infinite;display:none;}
+  .spin.on{display:block;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
+  .mc{border-radius:10px;padding:12px 8px;text-align:center;}
+  .di{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid rgba(200,169,110,0.1);}
+  .hi{padding:8px 0;border-bottom:1px solid rgba(200,169,110,0.1);}
+
+  /* PAGE À PROPOS */
+  .about-hero{text-align:center;padding:20px 10px;border-bottom:1px solid rgba(200,169,110,0.15);margin-bottom:16px;}
+  .about-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--sprout),var(--lime));display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 12px;}
+  .about-name{font-size:20px;font-weight:700;color:var(--lime);}
+  .about-school{font-size:12px;color:var(--straw);margin-top:4px;line-height:1.6;}
+  .about-badge{display:inline-block;background:rgba(134,200,39,0.15);border:1px solid rgba(134,200,39,0.3);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--lime);margin-top:8px;}
+  .about-info{display:grid;gap:10px;}
+  .about-item{background:rgba(255,255,255,0.04);border:1px solid rgba(200,169,110,0.15);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+  .about-icon{font-size:22px;flex-shrink:0;}
+  .about-label{font-size:10px;color:var(--straw);text-transform:uppercase;letter-spacing:1px;}
+  .about-value{font-size:13px;color:var(--cream);margin-top:2px;}
+  .copyright{text-align:center;margin-top:16px;padding:14px;background:rgba(134,200,39,0.07);border:1px solid rgba(134,200,39,0.2);border-radius:12px;font-size:12px;color:var(--straw);}
+  .copyright strong{color:var(--lime);}
+
+  footer{text-align:center;padding:16px;color:#444;font-size:11px;border-top:1px solid rgba(200,169,110,0.1);margin-top:10px;}
+  footer span{color:var(--lime);}
+  ::-webkit-scrollbar{width:4px;height:4px;}
+  ::-webkit-scrollbar-thumb{background:rgba(200,169,110,0.2);border-radius:4px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌿</div>
+  <div>
+    <div class="app-name">AgroSmart AI</div>
+    <div class="app-tag">Agriculture & Élevage — Afrique</div>
+  </div>
+  <div class="powered">Propulsé par<span>Groq ⚡</span></div>
+</header>
+
+<!-- BANNIÈRE CLÉ — disparaît après activation -->
+<div id="banner">
+  <h3>🔑 Entrez votre clé API Groq (100% GRATUITE)</h3>
+  <p>Groq est gratuit et ultra-rapide. Obtenez votre clé sur <a href="https://console.groq.com" target="_blank">console.groq.com</a> → Sign Up → API Keys → Create Key</p>
+  <div class="key-row">
+    <input type="text" id="key-input" placeholder="gsk_...collez votre clé ici...">
+    <button id="key-btn" onclick="saveKey()">✅ Activer</button>
+  </div>
+  <div class="key-help">La clé commence par <strong>gsk_</strong> — sauvegardée automatiquement sur votre appareil.</div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-sec">🌿 Plantes</div>
+  <div class="nav-row">
+    <button class="nb active" onclick="go('diagnostic',this)">🔬 Diagnostic</button>
+    <button class="nb" onclick="go('meteo',this)">🌦️ Météo</button>
+    <button class="nb" onclick="go('conseils',this)">🌱 Conseils</button>
+  </div>
+  <div class="nav-sec">🐾 Animaux</div>
+  <div class="nav-row">
+    <button class="nb" onclick="go('vet',this)">🐾 Vétérinaire</button>
+    <button class="nb" onclick="go('nutrition',this)">🌾 Nutrition</button>
+    <button class="nb" onclick="go('vaccin',this)">💉 Vaccins</button>
+    <button class="nb" onclick="go('elevage',this)">🏡 Élevage</button>
+  </div>
+  <div class="nav-sec">💬 Plus</div>
+  <div class="nav-row">
+    <button class="nb" onclick="go('comm',this)">👥 Questions</button>
+    <button class="nb" onclick="go('apropos',this)">👤 À propos</button>
+  </div>
+</nav>
+
+<div class="content">
+
+<!-- DIAGNOSTIC -->
+<div class="page active" id="page-diagnostic">
+  <div class="card">
+    <div class="ct">🔬 Diagnostic Plantes — IA</div>
+    <div class="cs">Photo ou description → traitement adapté à l'Afrique.</div>
+    <div class="drop" id="drop-p" onclick="document.getElementById('fp').click()">
+      <div style="font-size:30px;margin-bottom:5px">📸</div>
+      <div style="color:var(--straw);font-size:12px">Appuyez pour ajouter une photo</div>
+    </div>
+    <input type="file" id="fp" accept="image/*" onchange="loadImg('fp','drop-p','b64p','mimep')">
+    <input type="hidden" id="b64p"><input type="hidden" id="mimep">
+    <input type="text" id="desc-p" placeholder="Ex: feuilles jaunes, taches brunes...">
+    <button class="btn bp" onclick="diagPlante()">🧬 Analyser</button>
+    <button class="btn bg" onclick="clearDrop('drop-p','b64p','📸','Appuyez pour ajouter une photo')">Effacer</button>
+    <div class="spin" id="s-p"></div>
+    <div class="result" id="r-p"></div>
+  </div>
+</div>
+
+<!-- MÉTÉO -->
+<div class="page" id="page-meteo">
+  <div class="card">
+    <div class="ct">🌦️ Alertes Météo Agricoles</div>
+    <input type="text" id="m-ville" placeholder="Votre région (ex: Bouaké, Sikasso...)">
+    <select id="m-cult">
+      <option>Maïs</option><option>Riz</option><option>Manioc</option><option>Tomate</option>
+      <option>Oignon</option><option>Cacao</option><option>Café</option><option>Coton</option>
+      <option>Arachide</option><option>Sorgho</option>
+    </select>
+    <button class="btn bp" onclick="getMeteo()">🔍 Obtenir les alertes</button>
+    <div class="spin" id="s-m"></div>
+    <div class="result" id="r-m"></div>
+  </div>
+  <div class="card">
+    <div class="ct">⚡ Alertes par Pays</div>
+    <div class="grid">
+      <div class="mc" style="background:rgba(26,127,181,0.1);border:1px solid rgba(26,127,181,0.25)"><div style="font-size:20px;margin-bottom:3px">🌧️</div><div style="font-size:10px;font-weight:700;color:var(--straw)">Côte d'Ivoire</div><div style="font-size:9px;color:var(--cream);margin-top:2px">Pluies modérées</div></div>
+      <div class="mc" style="background:rgba(245,166,35,0.1);border:1px solid rgba(245,166,35,0.25)"><div style="font-size:20px;margin-bottom:3px">☀️</div><div style="font-size:10px;font-weight:700;color:var(--straw)">Mali</div><div style="font-size:9px;color:var(--cream);margin-top:2px">Irriguer d'urgence</div></div>
+      <div class="mc" style="background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25)"><div style="font-size:20px;margin-bottom:3px">💨</div><div style="font-size:10px;font-weight:700;color:var(--straw)">Sénégal</div><div style="font-size:9px;color:var(--cream);margin-top:2px">Harmattan actif</div></div>
+      <div class="mc" style="background:rgba(74,158,47,0.1);border:1px solid rgba(74,158,47,0.25)"><div style="font-size:20px;margin-bottom:3px">⛅</div><div style="font-size:10px;font-weight:700;color:var(--straw)">Ghana</div><div style="font-size:9px;color:var(--cream);margin-top:2px">Temps favorable</div></div>
+      <div class="mc" style="background:rgba(224,90,43,0.1);border:1px solid rgba(224,90,43,0.25)"><div style="font-size:20px;margin-bottom:3px">🌩️</div><div style="font-size:10px;font-weight:700;color:var(--straw)">Cameroun</div><div style="font-size:9px;color:var(--cream);margin-top:2px">Orages prévus</div></div>
+      <div class="mc" style="background:rgba(224,90,43,0.1);border:1px solid rgba(224,90,43,0.25)"><div style="font-size:20px;margin-bottom:3px">🌵</div><div style="font-size:10px;font-weight:700;color:var(--straw)">Niger</div><div style="font-size:9px;color:var(--cream);margin-top:2px">Chaleur extrême</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONSEILS -->
+<div class="page" id="page-conseils">
+  <div class="card">
+    <div class="ct">🌱 Conseils Semis & Récolte</div>
+    <input type="text" id="c-cult" placeholder="Culture (maïs, tomate, manioc...)">
+    <input type="text" id="c-reg" placeholder="Région (Sahel, Zone forestière...)">
+    <div class="chip-row" id="chips">
+      <div class="chip active" onclick="chip(this,'chips')">📅 Semis</div>
+      <div class="chip" onclick="chip(this,'chips')">💧 Irrigation</div>
+      <div class="chip" onclick="chip(this,'chips')">🌿 Engrais</div>
+      <div class="chip" onclick="chip(this,'chips')">🌾 Récolte</div>
+      <div class="chip" onclick="chip(this,'chips')">📦 Conservation</div>
+      <div class="chip" onclick="chip(this,'chips')">💰 Profit</div>
+    </div>
+    <button class="btn bp" onclick="getConseils()">🤖 Obtenir les conseils</button>
+    <div class="spin" id="s-c"></div>
+    <div class="result" id="r-c"></div>
+  </div>
+</div>
+
+<!-- VÉTÉRINAIRE -->
+<div class="page" id="page-vet">
+  <div class="card">
+    <div class="ct sun">🐾 Diagnostic Vétérinaire IA</div>
+    <div class="cs">Décrivez les symptômes → diagnostic et traitement local suggérés.</div>
+    <select id="v-animal">
+      <optgroup label="🐄 Élevage bovin">
+        <option>Vache</option><option>Taureau</option><option>Veau</option>
+      </optgroup>
+      <optgroup label="🐐 Petits ruminants">
+        <option>Chèvre</option><option>Mouton</option><option>Brebis</option>
+      </optgroup>
+      <optgroup label="🐷 Porcins">
+        <option>Porc</option><option>Truie</option><option>Porcelet</option>
+      </optgroup>
+      <optgroup label="🐔 Volailles">
+        <option>Poulet</option><option>Dinde</option><option>Pintade</option>
+        <option>Canard</option><option>Oie</option><option>Pigeon</option>
+        <option>Caille</option><option>Autruche</option>
+      </optgroup>
+      <optgroup label="🐴 Équidés">
+        <option>Cheval</option><option>Âne</option><option>Mule</option>
+      </optgroup>
+      <optgroup label="🐕 Animaux de compagnie">
+        <option>Chien</option><option>Chat</option><option>Lapin domestique</option>
+        <option>Cochon d'Inde</option><option>Hamster</option><option>Perroquet</option>
+        <option>Tortue</option><option>Poisson</option>
+      </optgroup>
+      <optgroup label="🦎 Autres animaux">
+        <option>Escargot (héliciculture)</option><option>Abeille (apiculture)</option>
+        <option>Poisson (pisciculture)</option><option>Crevette (aquaculture)</option>
+        <option>Crocodile</option><option>Varan</option>
+      </optgroup>
+    </select>
+    <input type="text" id="v-age" placeholder="Âge de l'animal (ex: 2 ans, 6 mois...)">
+    <textarea id="v-sym" placeholder="Symptômes: perte d'appétit, diarrhée, boiterie, fièvre, plaies..."></textarea>
+    <div class="drop" id="drop-v" onclick="document.getElementById('fv').click()">
+      <div style="font-size:26px;margin-bottom:4px">📷</div>
+      <div style="color:var(--straw);font-size:12px">Photo optionnelle de l'animal</div>
+    </div>
+    <input type="file" id="fv" accept="image/*" onchange="loadImg('fv','drop-v','b64v','mimev')">
+    <input type="hidden" id="b64v"><input type="hidden" id="mimev">
+    <button class="btn bv" onclick="diagVet()">🔬 Diagnostiquer</button>
+    <button class="btn bg" onclick="clearDrop('drop-v','b64v','📷','Photo optionnelle de l\'animal')">Effacer</button>
+    <div class="spin" id="s-v"></div>
+    <div class="result-p" id="r-v"></div>
+  </div>
+</div>
+
+<!-- NUTRITION -->
+<div class="page" id="page-nutrition">
+  <div class="card">
+    <div class="ct sun">🌾 Nutrition & Alimentation Animale</div>
+    <div class="cs">Plan alimentaire avec ressources disponibles en Afrique.</div>
+    <select id="n-animal">
+      <optgroup label="🐄 Élevage Traditionnel">
+        <option>Vache</option><option>Chèvre</option><option>Mouton</option><option>Porc</option>
+        <option>Âne</option><option>Cheval</option><option>Bœuf</option><option>Buffle</option>
+      </optgroup>
+      <optgroup label="🐔 Volailles">
+        <option>Poulet</option><option>Dinde</option><option>Canard</option><option>Pintade</option>
+        <option>Oie</option><option>Caille</option><option>Autruche</option><option>Pigeon</option>
+      </optgroup>
+      <optgroup label="🐇 Petits Élevages">
+        <option>Lapin</option><option>Cochon d'Inde</option><option>Escargot</option>
+        <option>Poisson (pisciculture)</option><option>Crevette</option>
+      </optgroup>
+      <optgroup label="🐕 Animaux de Compagnie">
+        <option>Chien</option><option>Chat</option><option>Perroquet</option>
+        <option>Tortue</option><option>Hamster</option>
+      </optgroup>
+    </select>
+    <input type="number" id="n-nb" placeholder="Nombre d'animaux" min="1">
+    <select id="n-obj">
+      <option>Production lait</option><option>Production viande</option><option>Reproduction</option>
+      <option>Croissance rapide</option><option>Récupération maladie</option><option>Maintien en forme</option>
+    </select>
+    <button class="btn bv" onclick="getNutri()">🥗 Générer le plan alimentaire</button>
+    <div class="spin" id="s-n"></div>
+    <div class="result-p" id="r-n"></div>
+  </div>
+</div>
+
+<!-- VACCINS -->
+<div class="page" id="page-vaccin">
+  <div class="card">
+    <div class="ct sun">💉 Calendrier Vaccinal</div>
+    <select id="vac-animal">
+      <optgroup label="🐄 Élevage Traditionnel">
+        <option>Vache</option><option>Chèvre</option><option>Mouton</option><option>Porc</option>
+        <option>Âne</option><option>Cheval</option><option>Bœuf</option>
+      </optgroup>
+      <optgroup label="🐔 Volailles">
+        <option>Poulet</option><option>Dinde</option><option>Canard</option><option>Pintade</option>
+        <option>Oie</option><option>Caille</option><option>Autruche</option>
+      </optgroup>
+      <optgroup label="🐇 Petits Élevages">
+        <option>Lapin</option><option>Cochon d'Inde</option><option>Poisson</option>
+      </optgroup>
+      <optgroup label="🐕 Animaux de Compagnie">
+        <option>Chien</option><option>Chat</option><option>Perroquet</option><option>Tortue</option>
+      </optgroup>
+    </select>
+    <input type="text" id="vac-pays" placeholder="Pays ou région (ex: Côte d'Ivoire, Sahel...)">
+    <input type="text" id="vac-age" placeholder="Âge de l'animal">
+    <button class="btn bv" onclick="getVaccin()">🛡️ Générer le programme vaccinal</button>
+    <div class="spin" id="s-vac"></div>
+    <div class="result-p" id="r-vac"></div>
+  </div>
+  <div class="card">
+    <div class="ct sun">🚨 Maladies Fréquentes en Afrique</div>
+    <div class="di"><span style="font-size:18px;flex-shrink:0">🐄</span><div><div style="font-size:12px;font-weight:700;color:var(--sun)">Fièvre aphteuse <span style="font-weight:400;font-size:10px;color:var(--straw)">— Bovins/Ovins</span></div><div style="font-size:11px;color:#aaa">Vaccin obligatoire — Très contagieuse</div></div></div>
+    <div class="di"><span style="font-size:18px;flex-shrink:0">🐔</span><div><div style="font-size:12px;font-weight:700;color:var(--sun)">Newcastle <span style="font-weight:400;font-size:10px;color:var(--straw)">— Volailles</span></div><div style="font-size:11px;color:#aaa">Mortalité élevée — Vaccin annuel</div></div></div>
+    <div class="di"><span style="font-size:18px;flex-shrink:0">🐐</span><div><div style="font-size:12px;font-weight:700;color:var(--sun)">Pasteurellose <span style="font-weight:400;font-size:10px;color:var(--straw)">— Caprins/Ovins</span></div><div style="font-size:11px;color:#aaa">Fièvre + toux — Antibiotiques</div></div></div>
+    <div class="di"><span style="font-size:18px;flex-shrink:0">🐷</span><div><div style="font-size:12px;font-weight:700;color:var(--sun)">Peste porcine africaine <span style="font-weight:400;font-size:10px;color:var(--straw)">— Porcs</span></div><div style="font-size:11px;color:#aaa">Pas de vaccin — Isolement total</div></div></div>
+    <div class="di"><span style="font-size:18px;flex-shrink:0">🦟</span><div><div style="font-size:12px;font-weight:700;color:var(--sun)">Trypanosomiase <span style="font-weight:400;font-size:10px;color:var(--straw)">— Bovins/Équidés</span></div><div style="font-size:11px;color:#aaa">Mouche tsé-tsé — Trypanocides</div></div></div>
+    <div class="di"><span style="font-size:18px;flex-shrink:0">🐑</span><div><div style="font-size:12px;font-weight:700;color:var(--sun)">Charbon bactéridien <span style="font-weight:400;font-size:10px;color:var(--straw)">— Tous animaux</span></div><div style="font-size:11px;color:#aaa">Zoonose ! Vaccin annuel essentiel</div></div></div>
+  </div>
+</div>
+
+<!-- ÉLEVAGE -->
+<div class="page" id="page-elevage">
+  <div class="card">
+    <div class="ct sun">🏡 Plan d'Élevage Rentable</div>
+    <div class="cs">Plan complet pour démarrer votre élevage en Afrique.</div>
+    <select id="e-animal">
+      <optgroup label="🐄 Élevage Traditionnel">
+        <option>Vache laitière</option><option>Vache (viande)</option><option>Chèvre</option>
+        <option>Mouton</option><option>Porc</option><option>Âne</option><option>Cheval</option>
+      </optgroup>
+      <optgroup label="🐔 Volailles">
+        <option>Poulet (chair)</option><option>Poulet (ponte)</option><option>Dinde</option>
+        <option>Pintade</option><option>Canard</option><option>Oie</option>
+        <option>Caille</option><option>Autruche</option><option>Pigeon</option>
+      </optgroup>
+      <optgroup label="🐇 Petits Élevages Rentables">
+        <option>Lapin</option><option>Cochon d'Inde</option><option>Escargot (héliciculture)</option>
+        <option>Abeille (apiculture)</option><option>Poisson (pisciculture)</option>
+        <option>Crevette (aquaculture)</option><option>Crocodile</option>
+        <option>Aulacode (Agouthi)</option>
+      </optgroup>
+      <optgroup label="🐕 Animaux de Compagnie (élevage)">
+        <option>Chien</option><option>Chat</option><option>Perroquet</option><option>Tortue</option>
+      </optgroup>
+    </select>
+    <input type="text" id="e-surface" placeholder="Surface disponible (ex: 50m², 1 hectare...)">
+    <input type="text" id="e-budget" placeholder="Budget de départ en FCFA">
+    <button class="btn bv" onclick="getElevage()">📊 Générer le plan d'élevage</button>
+    <div class="spin" id="s-e"></div>
+    <div class="result-p" id="r-e"></div>
+  </div>
+</div>
+
+<!-- COMMUNAUTÉ -->
+<div class="page" id="page-comm">
+  <div class="card">
+    <div class="ct">👥 Posez votre question</div>
+    <textarea id="q-text" placeholder="Agriculture, élevage, prix, maladies... posez n'importe quelle question !"></textarea>
+    <button class="btn bp" onclick="askQ()">📨 Poser la question</button>
+    <div class="spin" id="s-q"></div>
+    <div class="result" id="r-q"></div>
+  </div>
+  <div class="card">
+    <div class="ct">📋 Questions récentes</div>
+    <div id="hist">
+      <div class="hi"><div style="font-size:12px;color:var(--cream)">Comment lutter contre les criquets ?</div><div style="font-size:10px;color:#555;margin-top:2px">✅ Répondu</div></div>
+      <div class="hi"><div style="font-size:12px;color:var(--cream)">Prix du maïs à Abidjan ?</div><div style="font-size:10px;color:#555;margin-top:2px">✅ Répondu</div></div>
+      <div class="hi"><div style="font-size:12px;color:var(--cream)">Meilleure race de chèvre pour le Sahel ?</div><div style="font-size:10px;color:#555;margin-top:2px">✅ Répondu</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- À PROPOS -->
+<div class="page" id="page-apropos">
+  <div class="card">
+    <div class="about-hero">
+      <div class="about-avatar">👨‍💻</div>
+      <div class="about-name">Tuo Stéphane</div>
+      <div class="about-school">
+        Élève en Terminale C<br>
+        Lycée Moderne Alassane Ouattara d'Anyama<br>
+        Côte d'Ivoire 🇨🇮
+      </div>
+      <div class="about-badge">🏆 Créateur & Développeur d'AgroSmart AI</div>
+    </div>
+    <div class="about-info">
+      <div class="about-item">
+        <span class="about-icon">🌍</span>
+        <div>
+          <div class="about-label">Nationalité</div>
+          <div class="about-value">Ivoirien — Côte d'Ivoire</div>
+        </div>
+      </div>
+      <div class="about-item">
+        <span class="about-icon">🏫</span>
+        <div>
+          <div class="about-label">Établissement</div>
+          <div class="about-value">Lycée Moderne Alassane Ouattara d'Anyama</div>
+        </div>
+      </div>
+      <div class="about-item">
+        <span class="about-icon">📚</span>
+        <div>
+          <div class="about-label">Classe</div>
+          <div class="about-value">Terminale C — Série Scientifique</div>
+        </div>
+      </div>
+      <div class="about-item">
+        <span class="about-icon">💡</span>
+        <div>
+          <div class="about-label">Vision</div>
+          <div class="about-value">Utiliser l'IA pour transformer l'agriculture africaine et améliorer la vie des éleveurs et agriculteurs</div>
+        </div>
+      </div>
+      <div class="about-item">
+        <span class="about-icon">🌱</span>
+        <div>
+          <div class="about-label">Application</div>
+          <div class="about-value">AgroSmart AI — Diagnostic, Météo, Conseils agricoles et vétérinaires pour l'Afrique</div>
+        </div>
+      </div>
+      <div class="about-item">
+        <span class="about-icon">⚡</span>
+        <div>
+          <div class="about-label">Technologie</div>
+          <div class="about-value">Intelligence Artificielle Groq — Gratuit et accessible à tous</div>
+        </div>
+      </div>
+    </div>
+    <div class="copyright">
+      © 2026 <strong>AgroSmart AI</strong> — Tous droits réservés<br>
+      Créé avec ❤️ par <strong>Tuo Stéphane</strong> — Anyama, Côte d'Ivoire 🇨🇮
+    </div>
+  </div>
+</div>
+
+</div>
+
+<footer>
+  🌿 AgroSmart AI — Agriculture & Élevage pour l'Afrique |
+  Créé par <span>Tuo Stéphane</span> | Lycée Moderne Alassane Ouattara d'Anyama 🇨🇮
+</footer>
+
+<script>
+let GROQ_KEY = localStorage.getItem("agrosmart_groq") || "";
+
+window.onload = () => {
+  if (GROQ_KEY) {
+    // Clé déjà enregistrée — cacher la bannière directement
+    document.getElementById("banner").style.display = "none";
+  }
+  setupDrop("drop-p","fp","b64p","mimep");
+  setupDrop("drop-v","fv","b64v","mimev");
+};
+
+function saveKey() {
+  const k = document.getElementById("key-input").value.trim();
+  if (!k) { alert("Veuillez coller votre clé Groq !"); return; }
+  if (!k.startsWith("gsk_")) { alert("❌ Clé invalide ! Elle doit commencer par gsk_\n\nObtenez-la sur : console.groq.com"); return; }
+  GROQ_KEY = k;
+  localStorage.setItem("agrosmart_groq", k);
+  // Faire disparaître la bannière avec animation
+  const banner = document.getElementById("banner");
+  banner.style.opacity = "0";
+  banner.style.transform = "translateY(-20px)";
+  banner.style.transition = "all 0.5s ease";
+  setTimeout(() => { banner.style.display = "none"; }, 500);
+}
+
+async function callGroq(prompt) {
+  if (!GROQ_KEY) {
+    alert("⚠️ Veuillez entrer votre clé Groq gratuite !\n\nRechargez la page pour voir le formulaire de clé.");
+    throw new Error("Clé manquante");
+  }
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method:"POST",
+    headers:{"Content-Type":"application/json","Authorization":"Bearer "+GROQ_KEY},
+    body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"user",content:prompt}],max_tokens:1024,temperature:0.7})
+  });
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e.error?.message||"Erreur API "+res.status); }
+  const data = await res.json();
+  return data.choices?.[0]?.message?.content || "Réponse vide.";
+}
+
+function go(name, btn) {
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nb").forEach(b=>b.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  btn.classList.add("active");
+}
+function chip(el,gid) {
+  document.querySelectorAll("#"+gid+" .chip").forEach(c=>c.classList.remove("active"));
+  el.classList.add("active");
+}
+function getChip(gid) {
+  return document.querySelector("#"+gid+" .chip.active")?.textContent?.replace(/[📅💧🌿🌾📦💰]\s*/,"") || "";
+}
+
+function setupDrop(zid,fid,bid,mid) {
+  const z=document.getElementById(zid);
+  z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("drag");});
+  z.addEventListener("dragleave",()=>z.classList.remove("drag"));
+  z.addEventListener("drop",e=>{e.preventDefault();z.classList.remove("drag");loadFile(e.dataTransfer.files[0],zid,bid,mid);});
+}
+function loadImg(fid,zid,bid,mid){loadFile(document.getElementById(fid).files[0],zid,bid,mid);}
+function loadFile(file,zid,bid,mid){
+  if(!file?.type.startsWith("image/"))return;
+  if(mid)document.getElementById(mid).value=file.type;
+  const r=new FileReader();
+  r.onload=e=>{document.getElementById(zid).innerHTML=`<img src="${e.target.result}" alt="">`;document.getElementById(bid).value=e.target.result.split(",")[1];};
+  r.readAsDataURL(file);
+}
+function clearDrop(zid,bid,icon,txt){
+  document.getElementById(zid).innerHTML=`<div style="font-size:26px;margin-bottom:4px">${icon}</div><div style="color:var(--straw);font-size:12px">${txt}</div>`;
+  document.getElementById(bid).value="";
+}
+function spin(id,on){document.getElementById(id).classList.toggle("on",on);}
+function show(id,txt){const el=document.getElementById(id);el.style.display="block";el.textContent=txt;}
+function hide(id){document.getElementById(id).style.display="none";}
+
+async function diagPlante(){
+  const desc=document.getElementById("desc-p").value.trim();
+  if(!desc)return alert("Décrivez votre plante ou son problème.");
+  spin("s-p",true);hide("r-p");
+  try{show("r-p",await callGroq(`Expert agronomie africaine. Problème: ${desc}\nRéponds en français:\n1.🔍 Diagnostic\n2.🌿 Symptômes\n3.💊 Traitement local Afrique\n4.🛡️ Prévention\n5.⚠️ Urgence: Faible/Modérée/Élevée`));}
+  catch(e){show("r-p","❌ "+e.message);}
+  spin("s-p",false);
+}
+async function getMeteo(){
+  const ville=document.getElementById("m-ville").value||"Afrique subsaharienne";
+  const cult=document.getElementById("m-cult").value;
+  spin("s-m",true);hide("r-m");
+  try{show("r-m",await callGroq(`Expert météo agricole africain. Région: ${ville}, Culture: ${cult}.\nRapport en français:\n1.🌤️ Conditions actuelles\n2.🌧️ Prévisions 7 jours\n3.⚠️ Alertes\n4.🌱 Impact sur ${cult}\n5.✅ Recommandations\n6.📅 Meilleur moment pour irriguer`));}
+  catch(e){show("r-m","❌ "+e.message);}
+  spin("s-m",false);
+}
+async function getConseils(){
+  const cult=document.getElementById("c-cult").value||"maïs";
+  const reg=document.getElementById("c-reg").value||"Afrique de l'Ouest";
+  const sujet=getChip("chips");
+  spin("s-c",true);hide("r-c");
+  try{show("r-c",await callGroq(`Expert agronome africain. Culture: ${cult}, Région: ${reg}, Sujet: ${sujet}.\nConseils en français:\n1.📅 Calendrier\n2.🌱 Techniques Afrique\n3.💧 Eau\n4.🧪 Engrais locaux\n5.🤝 Conseils pratiques\n6.💰 Rendement estimé`));}
+  catch(e){show("r-c","❌ "+e.message);}
+  spin("s-c",false);
+}
+async function diagVet(){
+  const animal=document.getElementById("v-animal").value;
+  const age=document.getElementById("v-age").value||"inconnu";
+  const sym=document.getElementById("v-sym").value.trim();
+  if(!sym)return alert("Décrivez les symptômes.");
+  spin("s-v",true);hide("r-v");
+  try{show("r-v",await callGroq(`Vétérinaire africain. Animal: ${animal}, Âge: ${age}, Symptômes: ${sym}.\nRéponds en français:\n1.🐾 Diagnostic\n2.🔴 Symptômes clés\n3.💊 Traitement Afrique + doses\n4.🌿 Remèdes locaux\n5.🏥 Vétérinaire nécessaire ?\n6.🛡️ Prévention\n7.⚠️ Contagion`));}
+  catch(e){show("r-v","❌ "+e.message);}
+  spin("s-v",false);
+}
+async function getNutri(){
+  const animal=document.getElementById("n-animal").value;
+  const nb=document.getElementById("n-nb").value||"1";
+  const obj=document.getElementById("n-obj").value;
+  spin("s-n",true);hide("r-n");
+  try{show("r-n",await callGroq(`Nutrition animale africaine. Animal: ${animal}, Nombre: ${nb}, Objectif: ${obj}.\nPlan en français:\n1.🌾 Ration quotidienne\n2.🌿 Fourrages locaux\n3.💊 Compléments\n4.💧 Eau\n5.📅 Calendrier\n6.❌ Aliments dangereux\n7.💰 Coût FCFA`));}
+  catch(e){show("r-n","❌ "+e.message);}
+  spin("s-n",false);
+}
+async function getVaccin(){
+  const animal=document.getElementById("vac-animal").value;
+  const pays=document.getElementById("vac-pays").value||"Côte d'Ivoire";
+  const age=document.getElementById("vac-age").value||"adulte";
+  spin("s-vac",true);hide("r-vac");
+  try{show("r-vac",await callGroq(`Vétérinaire africain. Animal: ${animal}, Pays: ${pays}, Âge: ${age}.\nProgramme vaccination en français:\n1.💉 Vaccins obligatoires\n2.📅 Calendrier\n3.🦠 Maladies à surveiller\n4.🔍 Signes d'alerte\n5.🧹 Hygiène\n6.📋 Carnet sanitaire\n7.💰 Coût FCFA`));}
+  catch(e){show("r-vac","❌ "+e.message);}
+  spin("s-vac",false);
+}
+async function getElevage(){
+  const animal=document.getElementById("e-animal").value;
+  const surface=document.getElementById("e-surface").value||"non précisée";
+  const budget=document.getElementById("e-budget").value||"limité";
+  spin("s-e",true);hide("r-e");
+  try{show("r-e",await callGroq(`Élevage africain rentable. Animal: ${animal}, Surface: ${surface}, Budget: ${budget} FCFA.\nPlan en français:\n1.🏗️ Bâtiment local\n2.🛒 Démarrage\n3.📅 Cycle production\n4.💰 Rentabilité FCFA\n5.📈 Marchés africains\n6.⚠️ Risques\n7.🌱 Synergie agriculture`));}
+  catch(e){show("r-e","❌ "+e.message);}
+  spin("s-e",false);
+}
+async function askQ(){
+  const q=document.getElementById("q-text").value.trim();
+  if(!q)return;
+  spin("s-q",true);hide("r-q");
+  try{
+    show("r-q",await callGroq(`Expert agricole africain. Question: ${q}\nRéponds en français, pratique et encourageant. Prix en FCFA.`));
+    const hist=document.getElementById("hist");
+    const item=document.createElement("div");
+    item.className="hi";
+    item.innerHTML=`<div style="font-size:12px;color:var(--cream)">${q}</div><div style="font-size:10px;color:#555;margin-top:2px">À l'instant · ✅ Répondu</div>`;
+    hist.insertBefore(item,hist.firstChild);
+    document.getElementById("q-text").value="";
+  }catch(e){show("r-q","❌ "+e.message);}
+  spin("s-q",false);
+}
+</script>
+</body>
+</html>
